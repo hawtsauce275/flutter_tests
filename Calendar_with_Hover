@@ -1,0 +1,176 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(StaticAugust2025CalendarApp());
+}
+
+class StaticAugust2025CalendarApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'August 2025 Calendar',
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('August 2025'),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(20),
+          child: CalendarGridAugust2025(),
+        ),
+      ),
+    );
+  }
+}
+
+class CalendarGridAugust2025 extends StatefulWidget {
+  @override
+  State<CalendarGridAugust2025> createState() => _CalendarGridAugust2025State();
+}
+
+class _CalendarGridAugust2025State extends State<CalendarGridAugust2025> {
+  static const int daysInMonth = 31;
+  static const int startWeekday = 5; // Friday (1=Mon,...,5=Fri,...,7=Sun)
+  static const weekDaysShort = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const weekDaysLong = [
+    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+  ];
+
+  int? hoveredDay;
+  final Map<int, GlobalKey> cellKeys = {};
+
+  // Returns (DayName, WeekNumber)
+  Map<String, dynamic> getDayInfo(int day) {
+    int weekdayIndex = (startWeekday + day - 2) % 7;
+    int firstDayOffset = (DateTime(2025, 8, 1).weekday + 6) % 7; // Monday=0
+    int weekNumber = ((day + firstDayOffset - 1) ~/ 7) + 1;
+    return {
+      'dayName': weekDaysLong[weekdayIndex % 7],
+      'weekNumber': weekNumber,
+    };
+  }
+
+  Offset? getCellPosition(int day) {
+    GlobalKey? key = cellKeys[day];
+    if (key == null) return null;
+    final RenderBox? renderBox = key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox == null) return null;
+    final Offset localOffset = renderBox.localToGlobal(Offset.zero);
+    return localOffset;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> calendarCells = [];
+
+    // Weekday headers
+    calendarCells.addAll(
+      weekDaysShort.map(
+        (d) => Center(child: Text(d, style: TextStyle(fontWeight: FontWeight.bold))),
+      ),
+    );
+
+    // Empty slots before 1st
+    for (int i = 1; i < startWeekday; i++) {
+      calendarCells.add(const SizedBox());
+    }
+
+    // Date cells with keys for positioning
+    for (int day = 1; day <= daysInMonth; day++) {
+      cellKeys[day] = GlobalKey();
+      calendarCells.add(
+        MouseRegion(
+          onEnter: (_) {
+            setState(() {
+              hoveredDay = day;
+            });
+          },
+          onExit: (_) {
+            setState(() {
+              hoveredDay = null;
+            });
+          },
+          child: Container(
+            key: cellKeys[day],
+            margin: EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: hoveredDay == day ? Colors.blue.shade100 : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$day',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: hoveredDay == day ? FontWeight.bold : FontWeight.normal,
+                color: hoveredDay == day ? Colors.blue : Colors.black,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Trailing empty slots for layout
+    int totalSlots = calendarCells.length;
+    while (totalSlots % 7 != 0) {
+      calendarCells.add(const SizedBox());
+      totalSlots++;
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        GridView.count(
+          crossAxisCount: 7,
+          shrinkWrap: true,
+          children: calendarCells,
+        ),
+        if (hoveredDay != null) ...[
+          Builder(builder: (context) {
+            final offset = getCellPosition(hoveredDay!);
+            if (offset == null) return const SizedBox();
+            final info = getDayInfo(hoveredDay!);
+            // adjust overlay position, so it doesn't flicker and remains visible
+            double left = offset.dx;
+            double top = offset.dy - 50; // show overlay above cell
+            // Limit left offset to screen width (optional improvement)
+            final screenWidth = MediaQuery.of(context).size.width;
+            if (left + 150 > screenWidth) {
+              left = screenWidth - 160;
+            }
+
+            return Positioned(
+              left: left,
+              top: top,
+              child: Material(
+                elevation: 4,
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blueAccent),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Day: ${info['dayName']}",
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+                      ),
+                      Text(
+                        "Week #: ${info['weekNumber']}",
+                        style: TextStyle(fontWeight: FontWeight.normal),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ],
+    );
+  }
+}
