@@ -1,0 +1,96 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // For date formatting
+
+void main() {
+  runApp(const AgeCalculatorApp());
+}
+
+class AgeCalculatorApp extends StatelessWidget {
+  const AgeCalculatorApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Age Calculator',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const AgeCalculatorScreen(),
+    );
+  }
+}
+
+class AgeCalculatorScreen extends StatefulWidget {
+  const AgeCalculatorScreen({super.key});
+
+  @override
+  State<AgeCalculatorScreen> createState() => _AgeCalculatorScreenState();
+}
+
+class _AgeCalculatorScreenState extends State<AgeCalculatorScreen> {
+  final TextEditingController _dobController = TextEditingController();
+  String _ageResult = "";
+
+  void _calculateAge() {
+    try {
+      // Parse input date (dd/MM/yyyy)
+      DateFormat format = DateFormat("dd/MM/yyyy");
+      DateTime dob = format.parseStrict(_dobController.text);
+
+      DateTime today = DateTime.now();
+
+      int years = today.year - dob.year;
+      int months = today.month - dob.month;
+      int days = today.day - dob.day;
+
+      // Adjust if birth date has not occurred yet this year
+      if (days < 0) {
+        months -= 1;
+        DateTime prevMonth = DateTime(today.year, today.month, 0);
+        days += prevMonth.day;
+      }
+      if (months < 0) {
+        years -= 1;
+        months += 12;
+      }
+
+      setState(() {
+        _ageResult = "Age: $years years, $months months, $days days";
+      });
+    } catch (e) {
+      setState(() {
+        _ageResult = "Invalid date format. Please use dd/mm/yyyy.";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Age Calculator")),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _dobController,
+              decoration: const InputDecoration(
+                labelText: "Enter DOB (dd/mm/yyyy)",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.datetime,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _calculateAge,
+              child: const Text("Calculate Age"),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _ageResult,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
