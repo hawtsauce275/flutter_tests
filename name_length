@@ -1,0 +1,70 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Name Length Checker',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const NameLengthPage(),
+    );
+  }
+}
+
+class NameLengthPage extends StatefulWidget {
+  const NameLengthPage({super.key});
+
+  @override
+  State<NameLengthPage> createState() => _NameLengthPageState();
+}
+
+class _NameLengthPageState extends State<NameLengthPage> {
+  final TextEditingController _controller = TextEditingController();
+  int? _nameLength;
+
+  void _checkLength() {
+    setState(() {
+      _nameLength = _controller.text.length;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Name Length Checker')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                labelText: "Enter your name",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _checkLength,
+              child: const Text("Check Length"),
+            ),
+            const SizedBox(height: 20),
+            if (_nameLength != null)
+              Text(
+                "Length of name: $_nameLength",
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
