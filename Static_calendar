@@ -1,0 +1,74 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(StaticAugust2025CalendarApp());
+}
+
+class StaticAugust2025CalendarApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'August 2025 Calendar',
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('August 2025'),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(20),
+          child: CalendarGridAugust2025(),
+        ),
+      ),
+    );
+  }
+}
+
+class CalendarGridAugust2025 extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // August 2025 starts on FRIDAY, ends on Sunday (31 days)
+    final List<String> weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final int daysInMonth = 31;
+    final int startWeekday = 5; // Friday (1 = Monday, 5 = Friday)
+    List<Widget> calendarCells = [];
+
+    // Weekday headers
+    calendarCells.addAll(weekDays.map((d) => Center(child: Text(d, style: TextStyle(fontWeight: FontWeight.bold)))));
+
+    // Empty cells before August 1
+    for (int i = 1; i < startWeekday; i++) {
+      calendarCells.add(const SizedBox());
+    }
+
+    // Date cells
+    for (int day = 1; day <= daysInMonth; day++) {
+      calendarCells.add(
+        Container(
+          margin: EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            '$day',
+            style: TextStyle(fontSize: 16),
+          ),
+        ),
+      );
+    }
+
+    // Fill empty cells at end to complete row (if needed)
+    int totalSlots = calendarCells.length;
+    while (totalSlots % 7 != 0) {
+      calendarCells.add(const SizedBox());
+      totalSlots++;
+    }
+
+    return GridView.count(
+      crossAxisCount: 7,
+      shrinkWrap: true,
+      children: calendarCells,
+    );
+  }
+}
